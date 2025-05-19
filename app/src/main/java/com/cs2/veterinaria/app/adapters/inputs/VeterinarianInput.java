@@ -36,6 +36,9 @@ public class VeterinarianInput implements InputPort{
     @Autowired
     @Lazy
     private LoginInput loginInput;
+    @Autowired
+    @Lazy
+    private VeterinarianInput veterinarianInput;
 
     private final String MENU = "Ingrese la opción:"
         + " \n 1. Registrar una nueva orden"
@@ -44,10 +47,9 @@ public class VeterinarianInput implements InputPort{
         + " \n 4. Consultar historia clínica"
         + " \n 5. Consultar todas las órdenes"
         + " \n 6. Registrar Dueño de mascota"
-        + " \n 7. Actualizar dueño de mascota"
-        + " \n 8. Listar dueños"
-        + " \n 9. Registrar una nueva mascota"
-        + " \n 10. Salir";
+        + " \n 7. Listar dueños"
+        + " \n 8. Registrar una nueva mascota"
+        + " \n 9. Salir";
 
         public void menu() throws Exception {
             System.out.println(MENU);
@@ -103,7 +105,7 @@ public class VeterinarianInput implements InputPort{
                 }
                 case "7": {
                     try {
-                        deleteOwner();
+                        listOwners();
                     } catch (Exception e) {
                         System.out.println(e.getMessage());
                     }
@@ -111,21 +113,13 @@ public class VeterinarianInput implements InputPort{
                 }
                 case "8": {
                     try {
-                        listOwners();
-                    } catch (Exception e) {
-                        System.out.println(e.getMessage());
-                    }
-                    break;
-                }
-                case "9": {
-                    try {
                         registerPet();
                     } catch (Exception e) {
                         System.out.println(e.getMessage());
                     }
                     break;
                 }
-                case "10": {
+                case "9": {
                     System.out.println("Hasta una proxima ocación");
                     loginInput.menu();
                     break;
@@ -225,12 +219,18 @@ public class VeterinarianInput implements InputPort{
                 List<Order> orders = veterinarianService.getAllOrders();
                 System.out.println("Lista de órdenes:");
                 for (Order order : orders) {
-                    System.out.println("ID: " + order.getIdOrder() + ", Descripción: ");
+                    if (order == null) {
+                        System.out.println("Orden nula encontrada.");
+                        continue;
+                    }
+                    System.out.println("ID: " + order.getIdOrder() + ", Medicamento: " + order.getDrugName() + ", Fecha: " + order.getDateOrder());
                 }
             } catch (Exception e) {
                 System.out.println("Error al consultar las órdenes: " + e.getMessage());
+                
             }
         }
+
         private void registerOwner() {
         try {
             System.out.println("Ingrese el nombre del dueño:");
@@ -245,28 +245,17 @@ public class VeterinarianInput implements InputPort{
 
             veterinarianService.registerOwner(person);
             System.out.println("Dueño registrado exitosamente.");
+            veterinarianInput.menu();
             } catch (Exception e) {
                 System.out.println("Error al registrar el dueño: " + e.getMessage());
-                }
-    }
-
-    private void deleteOwner() {
-        try {
-            System.out.println("Ingrese el documento del dueño a eliminar:");
-            Long document = personValidator.documentValidator(Utils.getReader().nextLine());
-            veterinarianService.deleteOwner(document);
-            System.out.println("Dueño eliminado exitosamente.");
-        } catch (Exception e) {
-            System.out.println("Error al eliminar el dueño: " + e.getMessage());
             }
+            
     }
-
-    
 
     private void listOwners() {
         try {
             System.out.println("Lista de dueños:");
-            List<Person> owners = adminService.listOwners();
+            List<Person> owners = veterinarianService.listOwners();
             for (Person owner : owners) {
                 System.out.println("Documento: " + owner.getDocument() + ", Nombre: " + owner.getName());
             }
